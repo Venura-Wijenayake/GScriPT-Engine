@@ -24,7 +24,7 @@ export function PromptNode({ data }) {
         color: dark ? '#f1f5f9' : '#111'
       }}
     >
-      <strong style={{ fontSize: 14 }}>{'Prompt'}</strong>
+      <strong style={{ fontSize: 14 }}>Prompt</strong>
       <textarea
         rows="4"
         value={data.prompt || ''}
@@ -39,7 +39,7 @@ export function PromptNode({ data }) {
           fontSize: 13,
           fontFamily: 'monospace',
           border: `1px solid ${dark ? '#475569' : '#ccc'}`,
-          background: dark ? '#0f172a' : '#fff',
+          background: dark ? '#0f172a' : '#ffffff',
           color: dark ? '#f1f5f9' : '#111',
           boxSizing: 'border-box'
         }}
@@ -76,20 +76,20 @@ export function OutputNode({ data }) {
         pointerEvents: 'all',
         padding: '12px 16px',
         borderRadius: '12px',
-        background: dark ? '#1e293b' : '#f0f0f0',
+        background: dark ? '#1e293b' : '#f0f4f9', // MATCHES PromptNode container
         border: `1px solid ${dark ? '#334155' : '#ccc'}`,
         fontFamily: 'system-ui, sans-serif',
         maxWidth: 300,
         color: dark ? '#f1f5f9' : '#111'
       }}
     >
-      <strong style={{ fontSize: 14 }}>{'Output'}</strong>
+      <strong style={{ fontSize: 14 }}>Output</strong>
       <div
         style={{
           marginTop: 8,
           padding: 8,
           borderRadius: 6,
-          background: dark ? '#0f172a' : '#e5e7eb',
+          background: dark ? '#0f172a' : '#ffffff', // Matches Prompt textarea
           fontSize: 13,
           fontFamily: 'monospace',
           color: dark ? '#f1f5f9' : '#111',

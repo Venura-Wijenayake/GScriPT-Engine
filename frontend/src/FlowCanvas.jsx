@@ -12,24 +12,33 @@ import 'reactflow/dist/style.css';
 
 import { StartNode, PromptNode, OutputNode } from './CustomNodes.jsx';
 
+const transparentWrapper = {
+  background: 'transparent',
+  border: 'none',
+  boxShadow: 'none'
+};
+
 const initialNodes = [
   {
     id: '1',
     type: 'start',
     data: {},
-    position: { x: 250, y: 5 }
+    position: { x: 250, y: 5 },
+    style: transparentWrapper
   },
   {
     id: '2',
     type: 'prompt',
     data: { prompt: '' },
-    position: { x: 100, y: 150 }
+    position: { x: 100, y: 150 },
+    style: transparentWrapper
   },
   {
     id: '3',
     type: 'output',
     data: { result: '' },
-    position: { x: 400, y: 150 }
+    position: { x: 400, y: 150 },
+    style: transparentWrapper
   }
 ];
 
@@ -73,24 +82,22 @@ function FlowCanvas({ darkMode }) {
 
   useEffect(() => {
     setNodes((nodes) =>
-      nodes.map((node) =>
-        node.type === 'prompt'
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                darkMode,
-                onChange: (val) => updatePrompt(node.id, val)
-              }
-            }
-          : {
-              ...node,
-              data: {
-                ...node.data,
-                darkMode
-              }
-            }
-      )
+      nodes.map((node) => {
+        const shared = {
+          ...node,
+          data: {
+            ...node.data,
+            darkMode
+          },
+          style: transparentWrapper
+        };
+
+        if (node.type === 'prompt') {
+          shared.data.onChange = (val) => updatePrompt(node.id, val);
+        }
+
+        return shared;
+      })
     );
   }, [darkMode, setNodes, updatePrompt]);
 
@@ -105,11 +112,17 @@ function FlowCanvas({ darkMode }) {
             ...node,
             data: {
               ...node.data,
-              result: prompt ? `Answer: ${prompt}` : 'No input'
-            }
+              result: prompt ? `Answer: ${prompt}` : 'No input',
+              darkMode
+            },
+            style: transparentWrapper
           };
         }
-        return node;
+        return {
+          ...node,
+          data: { ...node.data, darkMode },
+          style: transparentWrapper
+        };
       })
     );
   };
