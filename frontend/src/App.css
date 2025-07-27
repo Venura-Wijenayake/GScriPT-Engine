@@ -1,0 +1,61 @@
+/* Base reset and full-screen layout */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: system-ui, sans-serif;
+  background-color: #ffffff;
+  color: #111111;
+}
+
+/* Root container layout */
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Logo (optional use) */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+/* Utility: card-like container */
+.card {
+  padding: 2em;
+}
+
+/* Utility: muted text */
+.read-the-docs {
+  color: #888888;
+}
+
+/* 🌙 Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  html, body, #root {
+    background-color: #0f172a;
+    color: #f8f8f8;
+  }
+
+  .read-the-docs {
+    color: #94a3b8;
+  }
+
+  .logo:hover {
+    filter: drop-shadow(0 0 2em #93c5fd88);
+  }
+
+  .logo.react:hover {
+    filter: drop-shadow(0 0 2em #60a5fa88);
+  }
+}

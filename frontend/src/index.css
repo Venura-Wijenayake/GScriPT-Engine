@@ -1,0 +1,88 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #213547;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f8f8f8;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  font-weight: 500;
+  color: #2a5bd7;
+  text-decoration: none;
+}
+a:hover {
+  color: #1e3aad;
+}
+
+h1 {
+  font-size: 2.5em;
+  line-height: 1.2;
+}
+
+button {
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 0.5em 1em;
+  font-size: 1em;
+  font-family: inherit;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+button:hover {
+  background-color: #e5e5e5;
+}
+button:focus {
+  outline: 2px solid #4b9cff;
+  outline-offset: 2px;
+}
+
+/* 🔲 Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #f8f8f8;
+    background-color: #0f172a;
+  }
+
+  body {
+    background-color: #0f172a;
+    color: #f8f8f8;
+  }
+
+  a {
+    color: #90cdf4;
+  }
+  a:hover {
+    color: #63b3ed;
+  }
+
+  button {
+    background-color: #1e293b;
+    color: #f8f8f8;
+    border: 1px solid #334155;
+  }
+  button:hover {
+    background-color: #334155;
+  }
+
+  button:focus {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+}
