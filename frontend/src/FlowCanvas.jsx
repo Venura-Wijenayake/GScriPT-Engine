@@ -1,5 +1,5 @@
 // src/FlowCanvas.jsx
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -10,7 +10,20 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { StartNode, PromptNode, OutputNode } from './CustomNodes.jsx';
+import {
+  StartNode,
+  PromptNode,
+  OutputNode,
+  GPTNode,
+  TitleNode,
+  ManualEntryNode,
+  TextFileNode,
+  PlotPointNode,
+  ImageTagNode,
+  OutroPromptNode
+} from './CustomNodes.jsx';
+
+import KeyReset from './KeyReset.jsx';
 
 const transparentWrapper = {
   background: 'transparent',
@@ -28,16 +41,30 @@ const initialNodes = [
   },
   {
     id: '2',
-    type: 'prompt',
+    type: 'title',
     data: { prompt: '' },
-    position: { x: 100, y: 150 },
+    position: { x: 250, y: 100 },
     style: transparentWrapper
   },
   {
     id: '3',
+    type: 'prompt',
+    data: { prompt: '' },
+    position: { x: 100, y: 220 },
+    style: transparentWrapper
+  },
+  {
+    id: '4',
+    type: 'gpt',
+    data: { prompt: '', result: '' },
+    position: { x: 250, y: 340 },
+    style: transparentWrapper
+  },
+  {
+    id: '5',
     type: 'output',
     data: { result: '' },
-    position: { x: 400, y: 150 },
+    position: { x: 400, y: 460 },
     style: transparentWrapper
   }
 ];
@@ -47,6 +74,7 @@ const initialEdges = [];
 function FlowCanvas({ darkMode }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [showKeyReset, setShowKeyReset] = useState(false);
 
   const handleNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -92,7 +120,18 @@ function FlowCanvas({ darkMode }) {
           style: transparentWrapper
         };
 
-        if (node.type === 'prompt') {
+        if (
+          [
+            'prompt',
+            'gpt',
+            'title',
+            'manualentry',
+            'textfile',
+            'plotpoint',
+            'imagetag',
+            'outroprompt'
+          ].includes(node.type)
+        ) {
           shared.data.onChange = (val) => updatePrompt(node.id, val);
         }
 
@@ -101,9 +140,58 @@ function FlowCanvas({ darkMode }) {
     );
   }, [darkMode, setNodes, updatePrompt]);
 
-  const handleRun = () => {
-    setNodes((nodes) =>
-      nodes.map((node) => {
+  const handleRun = async () => {
+    const updatedNodes = await Promise.all(
+      nodes.map(async (node) => {
+        if (node.type === 'gpt') {
+          const incoming = edges.find((e) => e.target === node.id);
+          const source = incoming && nodes.find((n) => n.id === incoming.source);
+          const prompt = source?.data?.prompt || node.data?.prompt || '';
+
+          if (!prompt) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                result: 'No prompt provided.',
+                darkMode
+              },
+              style: transparentWrapper
+            };
+          }
+
+          try {
+            const res = await fetch('http://localhost:8000/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt })
+            });
+
+            const json = await res.json();
+            const result = json.response || json.error || 'Error: No response';
+
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                result,
+                darkMode
+              },
+              style: transparentWrapper
+            };
+          } catch (err) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                result: 'Error contacting backend',
+                darkMode
+              },
+              style: transparentWrapper
+            };
+          }
+        }
+
         if (node.type === 'output') {
           const incoming = edges.find((e) => e.target === node.id);
           const source = incoming && nodes.find((n) => n.id === incoming.source);
@@ -118,6 +206,7 @@ function FlowCanvas({ darkMode }) {
             style: transparentWrapper
           };
         }
+
         return {
           ...node,
           data: { ...node.data, darkMode },
@@ -125,13 +214,22 @@ function FlowCanvas({ darkMode }) {
         };
       })
     );
+
+    setNodes(updatedNodes);
   };
 
   const nodeTypes = useMemo(
     () => ({
       start: StartNode,
       prompt: PromptNode,
-      output: OutputNode
+      output: OutputNode,
+      gpt: GPTNode,
+      title: TitleNode,
+      manualentry: ManualEntryNode,
+      textfile: TextFileNode,
+      plotpoint: PlotPointNode,
+      imagetag: ImageTagNode,
+      outroprompt: OutroPromptNode
     }),
     []
   );
@@ -151,7 +249,10 @@ function FlowCanvas({ darkMode }) {
         style={{
           padding: '8px 16px',
           background: darkMode ? '#1e293b' : '#e2e8f0',
-          borderBottom: `1px solid ${darkMode ? '#334155' : '#cbd5e1'}`
+          borderBottom: `1px solid ${darkMode ? '#334155' : '#cbd5e1'}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}
       >
         <button
@@ -167,6 +268,20 @@ function FlowCanvas({ darkMode }) {
           }}
         >
           ▶️ Run
+        </button>
+        <button
+          onClick={() => setShowKeyReset(true)}
+          style={{
+            background: darkMode ? '#334155' : '#cbd5e1',
+            color: darkMode ? '#f1f5f9' : '#111',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          🔐 Reset API Key
         </button>
       </div>
 
@@ -189,6 +304,10 @@ function FlowCanvas({ darkMode }) {
           <Controls />
         </ReactFlow>
       </div>
+
+      {showKeyReset && (
+        <KeyReset darkMode={darkMode} onClose={() => setShowKeyReset(false)} />
+      )}
     </div>
   );
 }
