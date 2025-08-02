@@ -23,6 +23,7 @@ import {
   OutroPromptNode
 } from './CustomNodes.jsx';
 
+import { assembleScript } from './utils/assembleScript.js';
 import KeyReset from './KeyReset.jsx';
 
 const transparentWrapper = {
@@ -32,41 +33,11 @@ const transparentWrapper = {
 };
 
 const initialNodes = [
-  {
-    id: '1',
-    type: 'start',
-    data: {},
-    position: { x: 250, y: 5 },
-    style: transparentWrapper
-  },
-  {
-    id: '2',
-    type: 'title',
-    data: { prompt: '' },
-    position: { x: 250, y: 100 },
-    style: transparentWrapper
-  },
-  {
-    id: '3',
-    type: 'prompt',
-    data: { prompt: '' },
-    position: { x: 100, y: 220 },
-    style: transparentWrapper
-  },
-  {
-    id: '4',
-    type: 'gpt',
-    data: { prompt: '', result: '' },
-    position: { x: 250, y: 340 },
-    style: transparentWrapper
-  },
-  {
-    id: '5',
-    type: 'output',
-    data: { result: '' },
-    position: { x: 400, y: 460 },
-    style: transparentWrapper
-  }
+  { id: '1', type: 'start', data: {}, position: { x: 250, y: 5 }, style: transparentWrapper },
+  { id: '2', type: 'title', data: { prompt: '' }, position: { x: 250, y: 100 }, style: transparentWrapper },
+  { id: '3', type: 'prompt', data: { prompt: '' }, position: { x: 100, y: 220 }, style: transparentWrapper },
+  { id: '4', type: 'gpt', data: { prompt: '', result: '' }, position: { x: 250, y: 340 }, style: transparentWrapper },
+  { id: '5', type: 'output', data: { result: '' }, position: { x: 400, y: 460 }, style: transparentWrapper }
 ];
 
 const initialEdges = [];
@@ -75,6 +46,7 @@ function FlowCanvas({ darkMode }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [showKeyReset, setShowKeyReset] = useState(false);
+  const [newNodeType, setNewNodeType] = useState('');
 
   const handleNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -218,6 +190,30 @@ function FlowCanvas({ darkMode }) {
     setNodes(updatedNodes);
   };
 
+  const handleAssembleScript = () => {
+    const script = assembleScript(nodes, edges);
+    navigator.clipboard.writeText(script).then(() => {
+      alert('📋 Script copied to clipboard!');
+    });
+  };
+
+  const handleAddNode = () => {
+    if (!newNodeType) return;
+
+    const id = (nodes.length + 1).toString();
+    const maxY = Math.max(...nodes.map((n) => n.position.y));
+    const newNode = {
+      id,
+      type: newNodeType,
+      data: { prompt: '', result: '' },
+      position: { x: 250, y: maxY + 140 },
+      style: transparentWrapper
+    };
+
+    setNodes((prev) => [...prev, newNode]);
+    setNewNodeType('');
+  };
+
   const nodeTypes = useMemo(
     () => ({
       start: StartNode,
@@ -252,35 +248,34 @@ function FlowCanvas({ darkMode }) {
           borderBottom: `1px solid ${darkMode ? '#334155' : '#cbd5e1'}`,
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          gap: '12px'
         }}
       >
-        <button
-          onClick={handleRun}
-          style={{
-            background: '#10b981',
-            color: '#fff',
-            padding: '8px 16px',
-            fontSize: '14px',
-            borderRadius: '6px',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          ▶️ Run
-        </button>
-        <button
-          onClick={() => setShowKeyReset(true)}
-          style={{
-            background: darkMode ? '#334155' : '#cbd5e1',
-            color: darkMode ? '#f1f5f9' : '#111',
-            padding: '6px 12px',
-            borderRadius: '6px',
-            fontSize: '13px',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button onClick={handleRun} style={{ background: '#10b981', color: '#fff', padding: '8px 16px', fontSize: '14px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
+            ▶️ Run
+          </button>
+          <button onClick={handleAssembleScript} style={{ background: '#3b82f6', color: '#fff', padding: '8px 16px', fontSize: '14px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
+            🧩 Assemble Script
+          </button>
+          <select value={newNodeType} onChange={(e) => setNewNodeType(e.target.value)} style={{ padding: '6px', borderRadius: '6px' }}>
+            <option value="">➕ Add Node</option>
+            <option value="prompt">Prompt</option>
+            <option value="gpt">GPT</option>
+            <option value="output">Output</option>
+            <option value="title">Title</option>
+            <option value="manualentry">Manual Entry</option>
+            <option value="textfile">Text File</option>
+            <option value="plotpoint">Plot Point</option>
+            <option value="imagetag">Image Tag</option>
+            <option value="outroprompt">Outro</option>
+          </select>
+          <button onClick={handleAddNode} style={{ background: '#6366f1', color: '#fff', padding: '6px 12px', fontSize: '14px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
+            Add
+          </button>
+        </div>
+        <button onClick={() => setShowKeyReset(true)} style={{ background: darkMode ? '#334155' : '#cbd5e1', color: darkMode ? '#f1f5f9' : '#111', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', cursor: 'pointer' }}>
           🔐 Reset API Key
         </button>
       </div>
@@ -295,19 +290,12 @@ function FlowCanvas({ darkMode }) {
           nodeTypes={nodeTypes}
           fitView
         >
-          <Background
-            variant="dots"
-            gap={16}
-            size={1}
-            color={darkMode ? '#475569' : '#cbd5e1'}
-          />
+          <Background variant="dots" gap={16} size={1} color={darkMode ? '#475569' : '#cbd5e1'} />
           <Controls />
         </ReactFlow>
       </div>
 
-      {showKeyReset && (
-        <KeyReset darkMode={darkMode} onClose={() => setShowKeyReset(false)} />
-      )}
+      {showKeyReset && <KeyReset darkMode={darkMode} onClose={() => setShowKeyReset(false)} />}
     </div>
   );
 }

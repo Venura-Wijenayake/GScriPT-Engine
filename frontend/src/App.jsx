@@ -33,20 +33,47 @@ function App() {
     padding: '6px 12px',
     borderRadius: '6px',
     fontSize: '14px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    marginLeft: '8px'
+  };
+
+  const handleSave = () => {
+    const state = window.getFlowState?.();
+    if (state) {
+      localStorage.setItem('gscript-canvas', JSON.stringify(state));
+      alert('📝 Canvas state saved.');
+    }
+  };
+
+  const handleLoad = () => {
+    const state = localStorage.getItem('gscript-canvas');
+    if (state) {
+      const parsed = JSON.parse(state);
+      window.loadFlowState?.(parsed);
+    } else {
+      alert('⚠️ No saved canvas found.');
+    }
   };
 
   return (
     <div style={appStyle}>
       <header style={headerStyle}>
-        GScriPT Engine
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          style={buttonStyle}
-          title="Toggle dark mode"
-        >
-          {darkMode ? '☀ Light Mode' : '🌙 Dark Mode'}
-        </button>
+        <span>GScriPT Engine</span>
+        <div>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            style={buttonStyle}
+            title="Toggle dark mode"
+          >
+            {darkMode ? '☀ Light Mode' : '🌙 Dark Mode'}
+          </button>
+          <button onClick={handleSave} style={buttonStyle}>
+            💾 Save
+          </button>
+          <button onClick={handleLoad} style={buttonStyle}>
+            📂 Load
+          </button>
+        </div>
       </header>
 
       <main style={{ flexGrow: 1 }}>

@@ -1,3 +1,4 @@
+// src/CustomNodes.jsx
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 
@@ -16,15 +17,15 @@ const sharedBoxStyle = (dark) => ({
   background: dark ? '#1e293b' : '#f0f4f9',
   border: `1px solid ${dark ? '#334155' : '#ccc'}`,
   fontFamily: 'system-ui, sans-serif',
-  maxWidth: 300,
+  maxWidth: 400,
+  minWidth: 240,
   color: dark ? '#f1f5f9' : '#111'
 });
 
-// Shared textarea/input style
-const sharedTextareaStyle = (dark) => ({
+// Auto-expanding textarea style
+const expandingTextareaStyle = (dark) => ({
   marginTop: 8,
   width: '100%',
-  resize: 'both',
   borderRadius: 6,
   padding: 8,
   fontSize: 13,
@@ -32,10 +33,11 @@ const sharedTextareaStyle = (dark) => ({
   border: `1px solid ${dark ? '#475569' : '#ccc'}`,
   background: dark ? '#0f172a' : '#ffffff',
   color: dark ? '#f1f5f9' : '#111',
-  boxSizing: 'border-box'
+  boxSizing: 'border-box',
+  overflow: 'hidden',
+  minHeight: 40
 });
 
-// Shared wrapper component
 function NodeWrapper({ label, children, dark, hideSource = false, hideTarget = false }) {
   return (
     <div className="node-block" style={sharedBoxStyle(dark)}>
@@ -47,17 +49,37 @@ function NodeWrapper({ label, children, dark, hideSource = false, hideTarget = f
   );
 }
 
+function AutoTextarea({ value, onChange, placeholder, dark }) {
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    if (ref.current) {
+      ref.current.style.height = 'auto';
+      ref.current.style.height = ref.current.scrollHeight + 'px';
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      style={expandingTextareaStyle(dark)}
+    />
+  );
+}
+
 // ✅ Prompt Node
 export function PromptNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Prompt" dark={dark}>
-      <textarea
-        rows="4"
+      <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="Enter your prompt..."
-        style={sharedTextareaStyle(dark)}
+        dark={dark}
       />
     </NodeWrapper>
   );
@@ -70,12 +92,12 @@ export function OutputNode({ data }) {
     <NodeWrapper label="Output" dark={dark} hideSource>
       <div
         style={{
-          ...sharedTextareaStyle(dark),
+          ...expandingTextareaStyle(dark),
           fontFamily: 'monospace',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           overflowY: 'auto',
-          maxHeight: 160
+          minHeight: 60
         }}
       >
         {data.result || 'Waiting for input...'}
@@ -89,22 +111,19 @@ export function GPTNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="GPT Node" dark={dark}>
-      <textarea
-        rows="3"
+      <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="Ask something..."
-        style={sharedTextareaStyle(dark)}
+        dark={dark}
       />
       <div
         style={{
-          ...sharedTextareaStyle(dark),
+          ...expandingTextareaStyle(dark),
           marginTop: 8,
           fontFamily: 'monospace',
           whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          maxHeight: 120,
-          overflowY: 'auto'
+          wordBreak: 'break-word'
         }}
       >
         {data.result || 'No output yet.'}
@@ -149,7 +168,7 @@ export function TitleNode({ data }) {
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="Video Title..."
-        style={sharedTextareaStyle(dark)}
+        style={expandingTextareaStyle(dark)}
       />
     </NodeWrapper>
   );
@@ -160,12 +179,11 @@ export function ManualEntryNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Manual Entry" dark={dark}>
-      <textarea
-        rows="3"
+      <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="Insert quote or detail..."
-        style={sharedTextareaStyle(dark)}
+        dark={dark}
       />
     </NodeWrapper>
   );
@@ -181,7 +199,7 @@ export function TextFileNode({ data }) {
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="e.g. source.txt"
-        style={sharedTextareaStyle(dark)}
+        style={expandingTextareaStyle(dark)}
       />
     </NodeWrapper>
   );
@@ -192,12 +210,11 @@ export function PlotPointNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Plot Point" dark={dark}>
-      <textarea
-        rows="2"
+      <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="Optional beat..."
-        style={sharedTextareaStyle(dark)}
+        dark={dark}
       />
     </NodeWrapper>
   );
@@ -213,7 +230,7 @@ export function ImageTagNode({ data }) {
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="image.png or cue text"
-        style={sharedTextareaStyle(dark)}
+        style={expandingTextareaStyle(dark)}
       />
     </NodeWrapper>
   );
@@ -224,12 +241,11 @@ export function OutroPromptNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Outro Prompt" dark={dark}>
-      <textarea
-        rows="2"
+      <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
         placeholder="Wrap-up or call to action..."
-        style={sharedTextareaStyle(dark)}
+        dark={dark}
       />
     </NodeWrapper>
   );
