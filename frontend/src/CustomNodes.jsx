@@ -70,11 +70,46 @@ function AutoTextarea({ value, onChange, placeholder, dark }) {
   );
 }
 
+function RoleSelector({ value, onChange, dark }) {
+  return (
+    <select
+      value={value || ''}
+      onChange={onChange}
+      style={{
+        marginTop: 8,
+        width: '100%',
+        padding: 6,
+        borderRadius: 6,
+        fontSize: 13,
+        background: dark ? '#0f172a' : '#ffffff',
+        color: dark ? '#f8fafc' : '#111',
+        border: `1px solid ${dark ? '#475569' : '#ccc'}`,
+        fontFamily: 'system-ui'
+      }}
+    >
+      <option value="">Select Role (optional)</option>
+      <option value="tone">🎤 Tone</option>
+      <option value="style">🎭 Style</option>
+      <option value="plot">📈 Plot Point</option>
+      <option value="twist">🔀 Twist</option>
+      <option value="fact">📊 Fact</option>
+      <option value="hook">🎬 Hook</option>
+      <option value="outro">🔚 Outro</option>
+      <option value="visual">🖼️ Visual</option>
+    </select>
+  );
+}
+
 // ✅ Prompt Node
 export function PromptNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Prompt" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
@@ -111,6 +146,11 @@ export function GPTNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="GPT Node" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
@@ -163,6 +203,11 @@ export function TitleNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Title" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <input
         type="text"
         value={data.prompt || ''}
@@ -179,6 +224,11 @@ export function ManualEntryNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Manual Entry" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
@@ -194,6 +244,11 @@ export function TextFileNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Text File" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <input
         type="text"
         value={data.prompt || ''}
@@ -210,6 +265,11 @@ export function PlotPointNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Plot Point" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}
@@ -225,6 +285,11 @@ export function ImageTagNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Image Tag" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <input
         type="text"
         value={data.prompt || ''}
@@ -241,6 +306,11 @@ export function OutroPromptNode({ data }) {
   const dark = data?.darkMode;
   return (
     <NodeWrapper label="Outro Prompt" dark={dark}>
+      <RoleSelector
+        value={data.role}
+        onChange={(e) => data?.onRoleChange?.(e.target.value)}
+        dark={dark}
+      />
       <AutoTextarea
         value={data.prompt || ''}
         onChange={(e) => data?.onChange?.(e.target.value)}

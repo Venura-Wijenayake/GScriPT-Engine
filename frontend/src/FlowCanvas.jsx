@@ -1,4 +1,3 @@
-// src/FlowCanvas.jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   useNodesState,
@@ -46,6 +45,7 @@ function FlowCanvas({ darkMode }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [showKeyReset, setShowKeyReset] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [newNodeType, setNewNodeType] = useState('');
 
   const handleNodesChange = useCallback(
@@ -69,11 +69,32 @@ function FlowCanvas({ darkMode }) {
     [darkMode]
   );
 
+  const handleEdgeClick = useCallback(
+    (event, edge) => {
+      event.preventDefault();
+      if (confirm('🗑️ Remove this connection?')) {
+        setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+      }
+    },
+    [setEdges]
+  );
+
   const updatePrompt = useCallback(
     (nodeId, value) => {
       setNodes((nodes) =>
         nodes.map((n) =>
           n.id === nodeId ? { ...n, data: { ...n.data, prompt: value } } : n
+        )
+      );
+    },
+    [setNodes]
+  );
+
+  const updateRole = useCallback(
+    (nodeId, value) => {
+      setNodes((nodes) =>
+        nodes.map((n) =>
+          n.id === nodeId ? { ...n, data: { ...n.data, role: value } } : n
         )
       );
     },
@@ -105,12 +126,62 @@ function FlowCanvas({ darkMode }) {
           ].includes(node.type)
         ) {
           shared.data.onChange = (val) => updatePrompt(node.id, val);
+          shared.data.onRoleChange = (val) => updateRole(node.id, val);
         }
 
         return shared;
       })
     );
-  }, [darkMode, setNodes, updatePrompt]);
+  }, [darkMode, setNodes, updatePrompt, updateRole]);
+
+  useEffect(() => {
+    window.getFlowState = () => ({ nodes, edges });
+
+    window.loadFlowState = ({ nodes: newNodes, edges: newEdges }) => {
+      setNodes(
+        newNodes.map((node) => {
+          const updated = {
+            ...node,
+            data: {
+              ...node.data,
+              darkMode
+            },
+            style: transparentWrapper
+          };
+          if (
+            [
+              'prompt',
+              'gpt',
+              'title',
+              'manualentry',
+              'textfile',
+              'plotpoint',
+              'imagetag',
+              'outroprompt'
+            ].includes(node.type)
+          ) {
+            updated.data.onChange = (val) => updatePrompt(node.id, val);
+            updated.data.onRoleChange = (val) => updateRole(node.id, val);
+          }
+          return updated;
+        })
+      );
+      setEdges(newEdges);
+    };
+
+    return () => {
+      delete window.getFlowState;
+      delete window.loadFlowState;
+    };
+  }, [nodes, edges, darkMode, setNodes, setEdges, updatePrompt, updateRole]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('gscript-canvas');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      window.loadFlowState?.(parsed);
+    }
+  }, []);
 
   const handleRun = async () => {
     const updatedNodes = await Promise.all(
@@ -287,6 +358,7 @@ function FlowCanvas({ darkMode }) {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={handleConnect}
+          onEdgeClick={handleEdgeClick}
           nodeTypes={nodeTypes}
           fitView
         >

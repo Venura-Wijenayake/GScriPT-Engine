@@ -37,21 +37,49 @@ function App() {
     marginLeft: '8px'
   };
 
-  const handleSave = () => {
-    const state = window.getFlowState?.();
-    if (state) {
-      localStorage.setItem('gscript-canvas', JSON.stringify(state));
-      alert('📝 Canvas state saved.');
+  const handleExportJSON = () => {
+    const data = window.getFlowState?.();
+    if (!data) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gscript-flow.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportJSON = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        window.loadFlowState?.(data);
+        alert('📁 Flow imported!');
+      } catch (err) {
+        alert('❌ Failed to parse JSON file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleExportScript = () => {
+    if (typeof window.handleExportScriptFile === 'function') {
+      window.handleExportScriptFile();
+    } else {
+      alert('⚠️ Export function not available.');
     }
   };
 
-  const handleLoad = () => {
-    const state = localStorage.getItem('gscript-canvas');
-    if (state) {
-      const parsed = JSON.parse(state);
-      window.loadFlowState?.(parsed);
+  const handlePreviewScript = () => {
+    if (typeof window.handlePreviewScriptModal === 'function') {
+      window.handlePreviewScriptModal();
     } else {
-      alert('⚠️ No saved canvas found.');
+      alert('⚠️ Preview function not available.');
     }
   };
 
@@ -67,12 +95,29 @@ function App() {
           >
             {darkMode ? '☀ Light Mode' : '🌙 Dark Mode'}
           </button>
-          <button onClick={handleSave} style={buttonStyle}>
-            💾 Save
+
+          <button onClick={handleExportScript} style={buttonStyle}>
+            🧾 Save Script
           </button>
-          <button onClick={handleLoad} style={buttonStyle}>
-            📂 Load
+
+          <button onClick={handlePreviewScript} style={buttonStyle}>
+            👁️ Preview
           </button>
+
+          <button onClick={handleExportJSON} style={buttonStyle}>
+            💽 Export JSON
+          </button>
+
+          <label htmlFor="import-json" style={{ ...buttonStyle, cursor: 'pointer' }}>
+            📁 Import JSON
+          </label>
+          <input
+            type="file"
+            id="import-json"
+            accept=".json"
+            onChange={handleImportJSON}
+            style={{ display: 'none' }}
+          />
         </div>
       </header>
 
